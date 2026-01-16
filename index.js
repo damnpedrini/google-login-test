@@ -1,26 +1,45 @@
 const fs = require('fs');
 const path = require('path');
 
+// Mapeamento de tipos MIME
+const mimeTypes = {
+    '.html': 'text/html',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.svg': 'image/svg+xml'
+};
+
 module.exports = (req, res) => {
-    // Servir index.html na raiz
-    if (req.url === '/' || req.url === '/index.html') {
-        const filePath = path.join(__dirname, 'index.html');
-        const content = fs.readFileSync(filePath, 'utf8');
-        res.setHeader('Content-Type', 'text/html');
+    let filePath = req.url === '/' ? 'index.html' : req.url.replace(/^\//, '');
+    
+    // Remover query string
+    filePath = filePath.split('?')[0];
+    
+    // Segurança: prevenir path traversal
+    if (filePath.includes('..')) {
+        return res.status(403).send('Forbidden');
+    }
+    
+    const fullPath = path.join(__dirname, filePath);
+    const ext = path.extname(filePath);
+    
+    // Verificar se o arquivo existe
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        const contentType = mimeTypes[ext] || 'text/plain';
+        res.setHeader('Content-Type', contentType);
         return res.send(content);
     }
     
-    // Servir outros arquivos estáticos
-    const staticFiles = {
-        '/style.css': { path: 'style.css', type: 'text/css' },
-        '/script.js': { path: 'script.js', type: 'application/javascript' }
-    };
-    
-    if (staticFiles[req.url]) {
-        const filePath = path.join(__dirname, staticFiles[req.url].path);
-        if (fs.existsSync(filePath)) {
-            const content = fs.readFileSync(filePath, 'utf8');
-            res.setHeader('Content-Type', staticFiles[req.url].type);
+    // Se não encontrou, tentar index.html
+    if (req.url === '/' || !ext) {
+        const indexPath = path.join(__dirname, 'index.html');
+        if (fs.existsSync(indexPath)) {
+            const content = fs.readFileSync(indexPath, 'utf8');
+            res.setHeader('Content-Type', 'text/html');
             return res.send(content);
         }
     }
