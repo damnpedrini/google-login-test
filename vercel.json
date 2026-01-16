@@ -21,11 +21,11 @@
     },
     {
       "src": "/style.css",
-      "dest": "/api/index.js"
+      "dest": "/api/style.css.js"
     },
     {
       "src": "/script.js",
-      "dest": "/api/index.js"
+      "dest": "/api/script.js.js"
     },
     {
       "src": "/index.html",
