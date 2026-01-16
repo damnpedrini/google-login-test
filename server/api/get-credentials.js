@@ -46,12 +46,33 @@ module.exports = async (req, res) => {
         }
 
         // Parsear CSV (pular cabeçalho)
-        const headers = lines[0].split(',');
         const credentials = [];
         
+        // Função simples para parsear linha CSV (considera valores entre aspas)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+        
         for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',');
-            if (values.length === headers.length) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length >= 4) {
                 credentials.push({
                     timestamp: values[0],
                     email: values[1],
