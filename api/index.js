@@ -29,34 +29,42 @@ module.exports = async (req, res) => {
             return res.status(403).send('Forbidden');
         }
         
-        // Caminho relativo à raiz do projeto (subir um nível da pasta api)
-        const rootPath = path.join(__dirname, '..');
-        const fullPath = path.join(rootPath, filePath);
-        const ext = path.extname(filePath);
+        // Tentar diferentes caminhos possíveis na Vercel
+        const possiblePaths = [
+            path.join(__dirname, '..', filePath), // Raiz do projeto
+            path.join(process.cwd(), filePath),   // Diretório de trabalho atual
+            path.join('/var/task', filePath),      // Caminho comum na Vercel
+            path.join('/var/task', '..', filePath) // Alternativa
+        ];
         
-        console.log('Tentando servir:', filePath, 'Caminho completo:', fullPath, 'Existe?', fs.existsSync(fullPath));
-        
-        // Verificar se o arquivo existe
-        if (fs.existsSync(fullPath)) {
-            const stats = fs.statSync(fullPath);
-            if (stats.isFile()) {
-                const content = fs.readFileSync(fullPath, 'utf8');
-                const contentType = mimeTypes[ext] || 'text/plain; charset=utf-8';
-                
-                res.setHeader('Content-Type', contentType);
-                res.setHeader('Cache-Control', 'public, max-age=3600');
-                
-                return res.send(content);
+        let fullPath = null;
+        for (const possiblePath of possiblePaths) {
+            if (fs.existsSync(possiblePath) && fs.statSync(possiblePath).isFile()) {
+                fullPath = possiblePath;
+                break;
             }
         }
         
-        // Se não encontrou e é a raiz, servir index.html
+        const ext = path.extname(filePath);
+        
+        if (fullPath) {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            const contentType = mimeTypes[ext] || 'text/plain; charset=utf-8';
+            
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            
+            return res.send(content);
+        }
+        
+        // Se não encontrou e é a raiz, tentar servir index.html
         if (req.url === '/' || req.url === '' || !ext) {
-            const indexPath = path.join(rootPath, 'index.html');
-            if (fs.existsSync(indexPath)) {
-                const content = fs.readFileSync(indexPath, 'utf8');
-                res.setHeader('Content-Type', 'text/html; charset=utf-8');
-                return res.send(content);
+            for (const possiblePath of possiblePaths.map(p => p.replace(filePath, 'index.html'))) {
+                if (fs.existsSync(possiblePath)) {
+                    const content = fs.readFileSync(possiblePath, 'utf8');
+                    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                    return res.send(content);
+                }
             }
         }
         
