@@ -454,22 +454,28 @@ function applyTranslations(lang) {
     }
 }
 
-// Detectar e aplicar idioma ao carregar
-const detectedLang = detectLanguage();
-applyTranslations(detectedLang);
+// Variáveis globais
+let currentStep = 'email';
+let currentLang = 'en';
 
-// Permitir mudança manual de idioma
-const langSelector = document.querySelector('.language-selector');
-if (langSelector) {
-    langSelector.addEventListener('change', (e) => {
-        const selected = e.target.value;
-        let lang = 'en';
-        if (selected.includes('Português')) lang = 'pt';
-        else if (selected.includes('Español')) lang = 'es';
-        currentLang = lang;
-        applyTranslations(lang);
-    });
-}
+// Detectar e aplicar idioma ao carregar
+window.addEventListener('DOMContentLoaded', () => {
+    currentLang = detectLanguage();
+    applyTranslations(currentLang);
+    
+    // Permitir mudança manual de idioma
+    const langSelector = document.querySelector('.language-selector');
+    if (langSelector) {
+        langSelector.addEventListener('change', (e) => {
+            const selected = e.target.value;
+            let lang = 'en';
+            if (selected.includes('Português')) lang = 'pt';
+            else if (selected.includes('Español')) lang = 'es';
+            currentLang = lang;
+            applyTranslations(lang);
+        });
+    }
+});
 
 const emailInput = document.getElementById('email-input');
 const passwordInput = document.getElementById('password-input');
@@ -479,9 +485,6 @@ const nextButton = document.getElementById('next-button');
 const emailDisplay = document.getElementById('email-display');
 const backToEmailLink = document.getElementById('back-to-email');
 const showPasswordCheckbox = document.getElementById('show-password');
-
-let currentStep = 'email';
-let currentLang = detectedLang;
 
 // Função para avançar para a tela de senha
 function goToPasswordStep() {
