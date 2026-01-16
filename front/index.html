@@ -319,7 +319,7 @@ body {
             <div id="password-step" class="form-step">
                 <div class="password-header">
                     <div class="email-display" id="email-display"></div>
-                    <a href="https://accounts.google.com/AccountChooser" target="_blank" class="use-different-account" id="back-to-email">Use a different account</a>
+                    <a href="#" class="use-different-account" id="back-to-email">Use a different account</a>
                 </div>
                 <div class="input-container">
                     <input type="password" id="password-input" class="input-field" placeholder="Enter your password" autocomplete="current-password">
@@ -581,13 +581,10 @@ passwordInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Voltar para email quando clicar em "Use a different account" (só se não tiver link)
+// Voltar para email quando clicar em "Use a different account"
 backToEmailLink.addEventListener('click', (e) => {
-    // Se o link não apontar para o Google, permitir comportamento padrão
-    if (!backToEmailLink.href.includes('google.com')) {
-        e.preventDefault();
-        goToEmailStep();
-    }
+    e.preventDefault();
+    goToEmailStep();
 });
 
 // Mostrar/ocultar senha
