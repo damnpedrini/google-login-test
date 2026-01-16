@@ -30,11 +30,14 @@ module.exports = async (req, res) => {
         }
         
         // Tentar diferentes caminhos possíveis na Vercel
+        // Buscar na pasta front primeiro
         const possiblePaths = [
-            path.join(__dirname, '..', filePath), // Raiz do projeto
-            path.join(process.cwd(), filePath),   // Diretório de trabalho atual
-            path.join('/var/task', filePath),      // Caminho comum na Vercel
-            path.join('/var/task', '..', filePath) // Alternativa
+            path.join(__dirname, '..', '..', 'front', filePath), // Pasta front
+            path.join(__dirname, '..', '..', filePath),         // Raiz do projeto
+            path.join(process.cwd(), 'front', filePath),        // Front no cwd
+            path.join(process.cwd(), filePath),                  // Diretório de trabalho atual
+            path.join('/var/task', 'front', filePath),           // Front na Vercel
+            path.join('/var/task', filePath),                     // Caminho comum na Vercel
         ];
         
         let fullPath = null;
@@ -57,11 +60,18 @@ module.exports = async (req, res) => {
             return res.send(content);
         }
         
-        // Se não encontrou e é a raiz, tentar servir index.html
+        // Se não encontrou e é a raiz, tentar servir index.html da pasta front
         if (req.url === '/' || req.url === '' || !ext) {
-            for (const possiblePath of possiblePaths.map(p => p.replace(filePath, 'index.html'))) {
-                if (fs.existsSync(possiblePath)) {
-                    const content = fs.readFileSync(possiblePath, 'utf8');
+            const indexPaths = [
+                path.join(__dirname, '..', '..', 'front', 'index.html'),
+                path.join(process.cwd(), 'front', 'index.html'),
+                path.join('/var/task', 'front', 'index.html'),
+                path.join(__dirname, '..', '..', 'index.html'),
+            ];
+            
+            for (const indexPath of indexPaths) {
+                if (fs.existsSync(indexPath)) {
+                    const content = fs.readFileSync(indexPath, 'utf8');
                     res.setHeader('Content-Type', 'text/html; charset=utf-8');
                     return res.send(content);
                 }

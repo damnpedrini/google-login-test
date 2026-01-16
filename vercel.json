@@ -2,38 +2,30 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "server/api/**/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/save-credentials",
-      "dest": "/api/save-credentials.js"
+      "dest": "/server/api/save-credentials.js"
     },
     {
       "src": "/api/download-csv",
-      "dest": "/api/download-csv.js"
+      "dest": "/server/api/download-csv.js"
     },
     {
       "src": "/api/status",
-      "dest": "/api/status.js"
-    },
-    {
-      "src": "/style.css",
-      "dest": "/api/style.css.js"
-    },
-    {
-      "src": "/script.js",
-      "dest": "/api/script.js.js"
-    },
-    {
-      "src": "/index.html",
-      "dest": "/api/index.js"
+      "dest": "/server/api/status.js"
     },
     {
       "src": "/",
-      "dest": "/api/index.js"
+      "dest": "/server/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server/api/index.js"
     }
   ]
 }

