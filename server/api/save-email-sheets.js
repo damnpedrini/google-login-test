@@ -28,12 +28,10 @@ async function getFirstSheetName(sheets) {
     return spreadsheet.data.sheets[0].properties.title;
 }
 
-// Função para salvar dados no Google Sheets
-async function saveToGoogleSheets(data) {
+// Função para salvar email no Google Sheets
+async function saveEmailToGoogleSheets(email, timestamp, ip, additionalData = {}) {
     const auth = await getGoogleSheetsAuth();
     const sheets = google.sheets({ version: 'v4', auth });
-
-    const { timestamp, email, password, ip, userAgent } = data;
 
     // Obter nome da primeira aba dinamicamente
     const sheetName = await getFirstSheetName(sheets);
@@ -54,7 +52,7 @@ async function saveToGoogleSheets(data) {
                 range: `${sheetName}!A1:E1`,
                 valueInputOption: 'RAW',
                 resource: {
-                    values: [['Timestamp', 'Email', 'Password', 'IP Address', 'User Agent']]
+                    values: [['Timestamp', 'Email', 'IP Address', 'User Agent', 'Extra Info']]
                 }
             });
         }
@@ -65,18 +63,18 @@ async function saveToGoogleSheets(data) {
             range: `${sheetName}!A1:E1`,
             valueInputOption: 'RAW',
             resource: {
-                values: [['Timestamp', 'Email', 'Password', 'IP Address', 'User Agent']]
+                values: [['Timestamp', 'Email', 'IP Address', 'User Agent', 'Extra Info']]
             }
         });
     }
 
-    // Adicionar nova linha
+    // Adicionar nova linha com os dados
     const values = [[
         timestamp,
         email,
-        password || '',
         ip,
-        userAgent || ''
+        additionalData.userAgent || '',
+        additionalData.extra || ''
     ]];
 
     const result = await sheets.spreadsheets.values.append({
@@ -106,11 +104,14 @@ module.exports = async (req, res) => {
 
     // Apenas aceitar POST
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+        return res.status(405).json({ 
+            success: false,
+            error: 'Método não permitido. Use POST.' 
+        });
     }
 
     try {
-        const { email, password } = req.body;
+        const { email, extra } = req.body;
         const timestamp = new Date().toISOString();
         const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
                    req.headers['x-real-ip'] || 
@@ -118,29 +119,44 @@ module.exports = async (req, res) => {
                    'Unknown';
         const userAgent = req.headers['user-agent'] || '';
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+        // Validar email
+        if (!email) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Email é obrigatório' 
+            });
+        }
+
+        // Validação básica de formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Formato de email inválido' 
+            });
         }
 
         // Salvar no Google Sheets
-        await saveToGoogleSheets({
-            timestamp,
-            email,
-            password,
-            ip,
-            userAgent
+        await saveEmailToGoogleSheets(email, timestamp, ip, {
+            userAgent,
+            extra: extra || ''
         });
 
-        console.log(`Credenciais salvas no Google Sheets: ${email} - ${new Date().toLocaleString()}`);
+        console.log(`Email salvo no Google Sheets: ${email} - ${timestamp}`);
 
         // Retornar sucesso
-        res.json({ 
+        return res.status(200).json({ 
             success: true,
-            message: 'Login realizado com sucesso'
+            message: 'Email salvo com sucesso no Google Sheets',
+            data: {
+                email,
+                timestamp,
+                spreadsheetId: SPREADSHEET_ID
+            }
         });
 
     } catch (error) {
-        console.error('Erro ao salvar credenciais:', error.message);
+        console.error('Erro ao salvar email no Google Sheets:', error.message);
         
         if (error.message.includes('GOOGLE_SERVICE_ACCOUNT_JSON')) {
             return res.status(500).json({ 
@@ -149,6 +165,10 @@ module.exports = async (req, res) => {
             });
         }
 
-        res.status(500).json({ error: 'Erro ao processar requisição' });
+        return res.status(500).json({ 
+            success: false,
+            error: 'Erro ao salvar email no Google Sheets',
+            details: error.message
+        });
     }
 };

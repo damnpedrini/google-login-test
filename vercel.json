@@ -12,12 +12,8 @@
       "dest": "/server/api/save-credentials.js"
     },
     {
-      "src": "/api/download-csv",
-      "dest": "/server/api/download-csv.js"
-    },
-    {
-      "src": "/api/get-credentials",
-      "dest": "/server/api/get-credentials.js"
+      "src": "/api/save-email-sheets",
+      "dest": "/server/api/save-email-sheets.js"
     },
     {
       "src": "/api/status",
