@@ -16,6 +16,10 @@
       "dest": "/server/api/download-csv.js"
     },
     {
+      "src": "/api/get-credentials",
+      "dest": "/server/api/get-credentials.js"
+    },
+    {
       "src": "/api/status",
       "dest": "/server/api/status.js"
     },
