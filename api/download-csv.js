@@ -5,6 +5,8 @@ const path = require('path');
 const DOWNLOAD_PASSWORD = process.env.DOWNLOAD_PASSWORD || 'senha123';
 
 module.exports = (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
     // Apenas aceitar GET
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
