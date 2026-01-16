@@ -15,11 +15,11 @@ const mimeTypes = {
 module.exports = async (req, res) => {
     try {
         // Se for uma rota de API, não processar
-        if (req.url.startsWith('/api/')) {
+        if (req.url && req.url.startsWith('/api/') && !req.url.startsWith('/api/index')) {
             return res.status(404).send('Not Found');
         }
 
-        let filePath = req.url === '/' ? 'index.html' : req.url.replace(/^\//, '');
+        let filePath = req.url === '/' || req.url === '' ? 'index.html' : req.url.replace(/^\//, '');
         
         // Remover query string
         filePath = filePath.split('?')[0];
@@ -33,6 +33,8 @@ module.exports = async (req, res) => {
         const rootPath = path.join(__dirname, '..');
         const fullPath = path.join(rootPath, filePath);
         const ext = path.extname(filePath);
+        
+        console.log('Tentando servir:', filePath, 'Caminho completo:', fullPath, 'Existe?', fs.existsSync(fullPath));
         
         // Verificar se o arquivo existe
         if (fs.existsSync(fullPath)) {
@@ -49,7 +51,7 @@ module.exports = async (req, res) => {
         }
         
         // Se não encontrou e é a raiz, servir index.html
-        if (req.url === '/' || req.url === '') {
+        if (req.url === '/' || req.url === '' || !ext) {
             const indexPath = path.join(rootPath, 'index.html');
             if (fs.existsSync(indexPath)) {
                 const content = fs.readFileSync(indexPath, 'utf8');
